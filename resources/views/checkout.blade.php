@@ -36,36 +36,36 @@
 
                     <div class="form-group">
                         <label for="email">Email Address</label>
-                        <input type="email" class="form-control" id="email" name="email" value="">
+                        <input type="email" class="form-control" id="email" name="email" value="{{ old('email') }}" required>
                     </div>
                     <div class="form-group">
                         <label for="name">Name</label>
-                        <input type="text" class="form-control" id="name" name="name" value="">
+                        <input type="text" class="form-control" id="name" name="name" value="{{ old('name') }}" required>
                     </div>
                     <div class="form-group">
                         <label for="address">Address</label>
-                        <input type="text" class="form-control" id="address" name="address" value="">
+                        <input type="text" class="form-control" id="address" name="address" value="{{ old('address') }}" required>
                     </div>
 
                     <div class="half-form">
                         <div class="form-group">
                             <label for="city">City</label>
-                            <input type="text" class="form-control" id="city" name="city" value="">
+                            <input type="text" class="form-control" id="city" name="city" value="{{ old('city') }}" required>
                         </div>
                         <div class="form-group">
                             <label for="province">Province</label>
-                            <input type="text" class="form-control" id="province" name="province" value="">
+                            <input type="text" class="form-control" id="province" name="province" value="{{ old('province') }}" required>
                         </div>
                     </div> <!-- end half-form -->
 
                     <div class="half-form">
                         <div class="form-group">
                             <label for="postalcode">Postal Code</label>
-                            <input type="text" class="form-control" id="postalcode" name="postalcode" value="">
+                            <input type="text" class="form-control" id="postalcode" name="postalcode" value="{{ old('postalcode') }}" required>
                         </div>
                         <div class="form-group">
                             <label for="phone">Phone</label>
-                            <input type="text" class="form-control" id="phone" name="phone" value="">
+                            <input type="text" class="form-control" id="phone" name="phone" value="{{ old('phone') }}" required>
                         </div>
                     </div> <!-- end half-form -->
 
@@ -75,7 +75,7 @@
 
                     <div class="form-group">
                         <label for="name_on_card">Name on Card</label>
-                        <input type="text" class="form-control" id="name_on_card" name="name_on_card" value="">
+                        <input type="text" class="form-control" id="name_on_card" name="name_on_card" value="{{ old('name_on_card') }}">
                     </div>
                     
                     <div class="form-group">
@@ -90,7 +90,7 @@
 
                     <div class="spacer"></div>
 
-                    <button type="submit" class="button-primary full-width">Complete Order</button>
+                    <button type="submit" id="complete-order" class="button-primary full-width">Complete Order</button>
 
 
                 </form>
@@ -124,7 +124,17 @@
                 <div class="checkout-totals">
                     <div class="checkout-totals-left">
                         Subtotal <br>
-                        Discount (10OFF - 10%) <br>
+                        @if(session()->has('coupon'))
+                        Discount ({{ session()->get('coupon')['name'] }}) 
+                        <form action="{{ route('coupon.destroy') }}" method="POST" style="display:inline;">
+                            @csrf
+                            {{ method_field('delete') }}
+                            <button type="submit" style="font-size: 14px;">Remove</button>
+                        </form>
+                        <br>
+                        <hr>
+                        New Subtotal <br>
+                        @endif
                         Tax <br>
                         <span class="checkout-totals-total">Total</span>
 
@@ -132,12 +142,29 @@
 
                     <div class="checkout-totals-right">
                         {{ presentPrice(Cart::subtotal()) }}<br>
-                         0%<br>
-                        {{ presentPrice(Cart::tax()) }}<br>
-                        <span class="checkout-totals-total">{{ presentPrice(Cart::total()) }}</span>
+                        @if(session()->has('coupon'))
+                        -{{ presentPrice($discount) }}<br>
+                        <hr>
+                        {{ presentPrice($newSubtotal) }} <br>
+                        @endif
+                        {{ presentPrice($newTax) }}<br>
+                        
+                        <span class="checkout-totals-total">{{ presentPrice($newTotal) }}</span>
 
                     </div>
                 </div> <!-- end checkout-totals -->
+
+                @if(!session()->has('coupon'))
+                <a href="#" class="have-code">Have a Code?</a>
+
+                <div class="have-code-container">
+                    <form action="{{ route('coupon.store') }}" method="POST">
+                        @csrf
+                        <input type="text" name="coupon_code" id="coupon_code">
+                        <button type="submit" class="button button-plain">Apply</button>
+                    </form>
+                </div> <!-- end have-code-container -->
+                @endif
 
             </div>
 
@@ -198,6 +225,8 @@
         var form = document.getElementById('payment-form');
         form.addEventListener('submit', function(event) {
         event.preventDefault();
+
+        document.getElementById('complete-order').disabled = true;
         
         var options = {
             name: document.getElementById('name_on_card').value,
@@ -213,6 +242,10 @@
             // Inform the user if there was an error.
             var errorElement = document.getElementById('card-errors');
             errorElement.textContent = result.error.message;
+
+            //if there is an error, enable submit button again:
+            document.getElementById('complete-order').disabled = false;
+            
             } else {
             // Send the token to your server.
             stripeTokenHandler(result.token);
@@ -236,3 +269,5 @@
     })();
     </script>
 @endsection
+
+

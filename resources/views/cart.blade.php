@@ -68,15 +68,25 @@
                             </form>
                         </div>
                         <div>
-                            <select class="quantity">
-                                <option selected="">1</option>
-                                <option>2</option>
-                                <option>3</option>
-                                <option>4</option>
-                                <option>5</option>
+                            <select class="quantity" data-id="{{ $item->rowId }}">
+                                {{-- <option selected="">1</option> --}}
+                                {{-- <option {{ $item->qty == 1 ? 'selected' : '' }}>1</option>
+                                <option {{ $item->qty == 2 ? 'selected' : '' }}>2</option>
+                                <option {{ $item->qty == 3 ? 'selected' : '' }}>3</option>
+                                <option {{ $item->qty == 4 ? 'selected' : '' }}>4</option>
+                                <option {{ $item->qty == 5 ? 'selected' : '' }}>5</option> --}}
+
+                                {{-- we offset the zero index by adding that 1 to 5 --}}
+                                @for ($i = 1; $i < 5 + 1; $i++)
+                                <option {{ $item->qty == $i ? 'selected' : '' }}>{{ $i }}</option> --}}
+                                @endfor
                             </select>
                         </div>
-                        <div>{{ $item->model->presentPrice() }}</div>
+                        {{-- this is replaced with the helper we made, so that when the quantity is updated, the price is also updated  --}}
+                        {{-- <div>{{ $item->model->presentPrice() }}</div> --}} 
+                        {{-- using helper --}}
+                        <div>{{ presentPrice($item->subtotal) }}</div>
+
                     </div>
                 </div> <!-- end cart-table-row -->
                 @endforeach
@@ -84,14 +94,7 @@
             </div> <!-- end cart-table -->
            
 
-            <a href="#" class="have-code">Have a Code?</a>
-
-            <div class="have-code-container">
-                <form action="#">
-                    <input type="text">
-                    <button type="submit" class="button button-plain">Apply</button>
-                </form>
-            </div> <!-- end have-code-container -->
+            
 
             <div class="cart-totals">
                 <div class="cart-totals-left">
@@ -105,6 +108,7 @@
                         <span class="cart-totals-total">Total</span>
                     </div>
                     <div class="cart-totals-subtotal">
+                        {{-- {{ presentPrice(Cart::subtotal()) }} <br> --}}
                         {{ presentPrice(Cart::subtotal()) }} <br>
                         {{ presentPrice(Cart::tax()) }} <br>
                         <span class="cart-totals-total"> {{ presentPrice(Cart::total()) }} </span>
@@ -199,4 +203,35 @@
     </div>
 
 
+@endsection
+
+@section('extra-js')
+{{-- lets include axios --}}
+<script src="{{ asset('js/app.js') }}"></script>
+    <script>
+        (function() {
+            //lets get all the node list that have the "quantity" class
+            const classname = document.querySelectorAll('.quantity')
+
+            //now we want to convert them to an array, we use the ES6 "Array.from"
+            //when we convert it, we loop through
+            Array.from(classname).forEach(function(element){
+                //we are listening when someone change item in the dropdown
+                element.addEventListener('change', function(){
+                    const id = element.getAttribute('data-id')
+                    // alert('changed')
+                    axios.patch(`/cart/${id}`, {
+                        quantity: this.value
+                    }).then(response => {
+                        // console.log(response)
+                        window.location.href = '{{ route('cart.index') }}'
+                    }).catch(error => {
+                        window.location.href = '{{ route('cart.index') }}'
+                        console.log(error)
+                    })
+                })
+            })
+
+        })();
+    </script>   
 @endsection
