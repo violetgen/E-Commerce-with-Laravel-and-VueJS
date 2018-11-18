@@ -45,7 +45,10 @@
                
                 <div class="cart-table-row">
                     <div class="cart-table-row-left">
-                        <a href="{{ route('shop.show', $item->model->slug) }}"><img src="{{ asset('img/products/'.$item->model->slug.'.jpg') }}" alt="item" class="cart-table-img"></a>
+                        <a href="{{ route('shop.show', $item->model->slug) }}">
+                            {{-- <img src="{{ asset('storage/' . $item->model->image) }}" alt="item" class="cart-table-img"> --}}
+                            <img src="{{ productImage($item->model->image) }}" alt="product">
+                        </a>
                         <div class="cart-item-details">
                             <div class="cart-table-item"><a href="{{ route('shop.show', $item->model->slug) }}">{{ $item->model->name }}</a></div>
                             <div class="cart-table-description">{{ $item->model->details }}</div>
@@ -137,7 +140,7 @@
                     
                 <div class="cart-table-row">
                     <div class="cart-table-row-left">
-                        <a href="{{ route('shop.show', $item->model->slug) }}"><img src="{{ asset('img/products/' . $item->model->slug . '.jpg') }}" alt="item" class="cart-table-img"></a>
+                        <a href="{{ route('shop.show', $item->model->slug) }}"><img src="{{ asset('storage/' . $product->image) }}" alt="item" class="cart-table-img"></a>
                         <div class="cart-item-details">
                             <div class="cart-table-item"><a href="{{ route('shop.show', $item->model->slug) }}">{{ $item->model->name }} </a></div>
                             <div class="cart-table-description">{{ $item->model->details}}</div>
@@ -193,7 +196,7 @@
             <div class="might-like-grid">
                 @foreach ($mightAlsoLike as $product)
                     <a href="{{ route('shop.show', $product->slug) }}" class="might-like-product">
-                        <img src="{{ asset('img/products/'.$product->slug.'.jpg') }}" alt="product">
+                        <img src="{{ asset('storage/' . $product->image) }}" alt="product">
                         <div class="might-like-product-name">{{ $product->name }}</div>
                         <div class="might-like-product-price">{{ $product->presentPrice() }}</div>
                     </a>

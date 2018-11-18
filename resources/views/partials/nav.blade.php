@@ -2,7 +2,7 @@
     <div class="top-nav container">
         <div class="logo"><a href="/">Laravel Ecommerce</a></div>
         @if (! request()->is('checkout'))
-        <ul>
+        {{-- <ul>
             <li><a href="{{ route('shop.index') }}">Shop</a></li>
             <li><a href="#">About</a></li>
             <li><a href="#">Blog</a></li>
@@ -14,7 +14,9 @@
                     @endif
                 </a>
             </li>
-        </ul>
+        </ul> --}}
+
+        {{ menu('main', 'partials.menus.main') }}
         @endif
     </div> <!-- end top-nav -->
 </header>

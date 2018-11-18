@@ -39,3 +39,12 @@ Route::get('empty', function () {
 // Route::get('empty', function () {
 //     Cart::instance('saveForLater')->destroy();
 // });
+
+
+Route::group(['prefix' => 'admin'], function () {
+    Voyager::routes();
+});
+
+Auth::routes();
+
+Route::get('/home', 'HomeController@index')->name('home');
