@@ -23,14 +23,25 @@ class CheckoutRequest extends FormRequest
      */
     public function rules()
     {
+        //if a user is checking out as a guest, let make sure his email is not in our database, if it is, let make him to login
+
+        $emailValidation = auth()->user() ? 'required|email' : 'required|email|unique:users';
+
         return [
-            'email' => 'required|email',
+            'email' => $emailValidation,
             'name' => 'required',
             'address' => 'required',
             'city' => 'required',
             'province' => 'required',
             'postalcode' => 'required',
             'phone' => 'required',
+        ];
+    }
+
+    public function messages()
+    {
+        return [
+            'email.unique' => 'You already have an account with that email address. please <a href="/login">login</a> to continue'
         ];
     }
 }

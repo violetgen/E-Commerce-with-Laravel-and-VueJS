@@ -17,6 +17,9 @@ class CheckoutController extends Controller
      */
     public function index()
     {
+        if (auth()->user() && request()->is('guestCheckout')) {
+            return redirect()->route('checkout.index');
+        }
         return view('checkout')->with([
             'discount' => $this->getNumber()->get('discount'),
             'newSubtotal' => $this->getNumber()->get('newSubtotal'),
@@ -59,8 +62,8 @@ class CheckoutController extends Controller
         }
     }
 
-    public function getNumber(){
-
+    public function getNumber()
+    {
         $tax = config('cart.tax') / 100;
         $discount = session()->get('coupon')['discount'] ?? 0;
         $newSubtotal = (Cart::subtotal() - $discount);

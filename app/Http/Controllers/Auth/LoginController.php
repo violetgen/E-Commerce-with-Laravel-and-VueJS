@@ -25,7 +25,7 @@ class LoginController extends Controller
      *
      * @var string
      */
-    protected $redirectTo = '/home';
+    protected $redirectTo = '/';
 
     /**
      * Create a new controller instance.
@@ -35,5 +35,24 @@ class LoginController extends Controller
     public function __construct()
     {
         $this->middleware('guest')->except('logout');
+    }
+
+    public function showLoginForm()
+    {
+        //we want to go the url the user was before interrupted by login form
+        session()->put('previousUrl', url()->previous());
+
+        return view('auth.login');
+    }
+
+    public function redirectTo()
+    {
+        // dd(session()->get('previousUrl'));
+        //the above will give us for instance:
+        //"http://localhost:8000/shop?category=mobile-phones"
+        // but we want anything after the 8000
+        // we use str_replace() to replace that part with an empty string
+        //now, if there is no session, go to the home page ('/')
+        return str_replace(url('/'), '', session()->get('previousUrl', '/'));
     }
 }

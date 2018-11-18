@@ -1,7 +1,8 @@
 <header>
     <div class="top-nav container">
-        <div class="logo"><a href="/">Laravel Ecommerce</a></div>
-        @if (! request()->is('checkout'))
+        <div class="top-nav-left">
+        <div class="logo"><a href="/">Ecommerce</a></div>
+        @if (! (request()->is('checkout') || request()->is('guestCheckout')))
         {{-- <ul>
             <li><a href="{{ route('shop.index') }}">Shop</a></li>
             <li><a href="#">About</a></li>
@@ -18,5 +19,12 @@
 
         {{ menu('main', 'partials.menus.main') }}
         @endif
+    </div>
+
+    <div class="top-nav-right">
+            @if (! (request()->is('checkout') || request()->is('guestCheckout')))
+            @include('partials.menus.main-right')
+            @endif
+        </div>
     </div> <!-- end top-nav -->
 </header>
