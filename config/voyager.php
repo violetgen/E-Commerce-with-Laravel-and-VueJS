@@ -35,6 +35,9 @@ return [
         'namespace' => 'App\\Http\\Controllers\\Voyager',
     ],
 
+    //it sets it to "password" when there is no environment variable
+    // 'adminPassword' => env('ADMIN_PASSWORD', 'password')
+
     /*
     |--------------------------------------------------------------------------
     | Models config

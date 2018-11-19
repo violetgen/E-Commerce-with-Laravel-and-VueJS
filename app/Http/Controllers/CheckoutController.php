@@ -7,6 +7,8 @@ use Cartalyst\Stripe\Stripe;
 use Gloudemans\Shoppingcart\Facades\Cart;
 use Cartalyst\Stripe\Exception\CardErrorException;
 use App\Http\Requests\CheckoutRequest;
+use App\Order;
+use App\OrderProduct;
 
 class CheckoutController extends Controller
 {
@@ -21,10 +23,10 @@ class CheckoutController extends Controller
             return redirect()->route('checkout.index');
         }
         return view('checkout')->with([
-            'discount' => $this->getNumber()->get('discount'),
-            'newSubtotal' => $this->getNumber()->get('newSubtotal'),
-            'newTax' => $this->getNumber()->get('newTax'),
-            'newTotal' => $this->getNumber()->get('newTotal'),
+            'discount' => $this->getNumbers()->get('discount'),
+            'newSubtotal' => $this->getNumbers()->get('newSubtotal'),
+            'newTax' => $this->getNumbers()->get('newTax'),
+            'newTotal' => $this->getNumbers()->get('newTotal'),
         ]);
     }
 
@@ -39,7 +41,7 @@ class CheckoutController extends Controller
             // $charge = Stripe::charges()->create([
             $charge = $stripe->charges()->create([
                 // 'amount' => Cart::total() / 100, //convert to dollars from cents. a new total is applied based on discount
-                'amount' => $this->getNumber()->get('newTotal'),
+                'amount' => $this->getNumbers()->get('newTotal'),
                 'currency' => 'CAD',
                 'source' => $request->stripeToken,
                 'description' => 'Order',
@@ -52,20 +54,53 @@ class CheckoutController extends Controller
                     'discount' => collect(session()->get('coupon'))->toJson(),
                 ],
             ]);
+
+            $this->addToOrdersTable($request, null); //this null passed in means there are no errors
             //when payment is successful, destroy the cart content, so that that item will be removed from the cart
             Cart::instance('default')->destroy();
             session()->forget('coupon'); //also remove coupon
 
             return redirect()->route('confirmation.index')->with('success_message', 'payment successful');
         } catch (CardErrorException $e) {
+            $this->addToOrdersTable($request, $e->getMessage());
             return back()->withErrors('Error! ' . $e->getMessage());
         }
     }
 
-    public function getNumber()
+    protected function addToOrdersTable($request, $error)
+    {
+        $order = Order::create([
+            'user_id' => auth()->user() ? auth()->user()->id : null,
+            'billing_email' => $request->email,
+            'billing_name' => $request->name,
+            'billing_address' => $request->address,
+            'billing_city' => $request->city,
+            'billing_province' => $request->province,
+            'billing_postalcode' => $request->postalcode,
+            'billing_phone' => $request->phone,
+            'billing_name_on_card' => $request->name_on_card,
+            'billing_discount' => $this->getNumbers()->get('discount'),
+            'billing_discount_code' => $this->getNumbers()->get('code'),
+            'billing_subtotal' => $this->getNumbers()->get('newSubtotal'),
+            'billing_tax' => $this->getNumbers()->get('newTax'),
+            'billing_total' => $this->getNumbers()->get('newTotal'),
+            'error' => $error,
+        ]);
+
+        foreach (Cart::content() as $item) {
+            OrderProduct::create([
+                'order_id' => $order->id,
+                'product_id' => $item->model->id,
+                'quantity' => $item->qty,
+            ]);
+        }
+    }
+
+    public function getNumbers()
     {
         $tax = config('cart.tax') / 100;
         $discount = session()->get('coupon')['discount'] ?? 0;
+        $code = session()->get('coupon')['name'] ?? null;
         $newSubtotal = (Cart::subtotal() - $discount);
         $newTax = $newSubtotal * $tax;
         // $newTotal = $newSubtotal + $newTax;
@@ -76,6 +111,7 @@ class CheckoutController extends Controller
         return collect([
             'tax' => $tax,
             'discount' => $discount,
+            'code' => $code,
             'newSubtotal' => $newSubtotal,
             'newTax' => $newTax,
             'newTotal' => $newTotal,

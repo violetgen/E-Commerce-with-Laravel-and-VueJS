@@ -1,4 +1,4 @@
-{{-- <ul>
+<ul>
     <li><a href="{{ route('shop.index') }}">Shop</a></li>
     <li><a href="#">About</a></li>
     <li><a href="#">Blog</a></li>
@@ -10,9 +10,9 @@
             @endif
         </a>
     </li>
-</ul> --}}
+</ul>
 
-<ul>
+{{-- <ul>
     @foreach($items as $menu_item)
         <li>
             <a href="{{ $menu_item->link() }}">
@@ -26,4 +26,4 @@
             </a>
         </li>
     @endforeach
-</ul>
+</ul> --}}
